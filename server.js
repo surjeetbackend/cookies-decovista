@@ -1,4 +1,3 @@
-// server.js
 const express = require('express');
 const cors = require('cors');
 const { google } = require('googleapis');
@@ -7,15 +6,13 @@ require('dotenv').config();
 const app = express();
 app.use(express.json());
 
-// ✅ Allow local and live frontend
 app.use(cors({
-  origin: ['http://localhost:5175', 'https://your-live-site.com'], // update if needed
+  origin: ['http://localhost:5175', 'https://decovista.in'],
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type']
 }));
-app.options('*', cors()); // Preflight
+app.options('*', cors());
 
-// ✅ Google Sheets Auth
 const auth = new google.auth.GoogleAuth({
   credentials: {
     client_email: process.env.GOOGLE_SERVICE_EMAIL,
@@ -47,7 +44,7 @@ app.post('/track-cookie', async (req, res) => {
     await appendToSheet('Sheet1!A2:D', [time, browser, location, ip]);
     res.status(200).json({ message: 'Cookie saved' });
   } catch (err) {
-    console.error('❌ Cookie error:', err.message);
+    console.error('Cookie error:', err.message);
     res.status(500).json({ error: 'Error saving cookie', details: err.message });
   }
 });
@@ -58,7 +55,7 @@ app.post('/track-click', async (req, res) => {
     await appendToSheet('Sheet2!F2:K', [time, tag, id, className, text]);
     res.status(200).json({ message: 'Click saved' });
   } catch (err) {
-    console.error('❌ Click error:', err.message);
+    console.error('Click error:', err.message);
     res.status(500).json({ error: 'Error saving click', details: err.message });
   }
 });
