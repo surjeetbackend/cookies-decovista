@@ -1,3 +1,4 @@
+// server.js
 const express = require('express');
 const cors = require('cors');
 const { google } = require('googleapis');
@@ -6,17 +7,15 @@ require('dotenv').config();
 const app = express();
 app.use(express.json());
 
-// ✅ CORS Setup (Allow localhost + production frontend)
+// ✅ Allow local and live frontend
 app.use(cors({
-  origin: ['http://localhost:5175', 'https://decovista.in/'], // Replace with real site
+  origin: ['http://localhost:5175', 'https://your-live-site.com'], // update if needed
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type']
 }));
+app.options('*', cors()); // Preflight
 
-// ✅ Preflight handler
-app.options('*', cors());
-
-// ✅ Google Auth from .env
+// ✅ Google Sheets Auth
 const auth = new google.auth.GoogleAuth({
   credentials: {
     client_email: process.env.GOOGLE_SERVICE_EMAIL,
@@ -26,7 +25,6 @@ const auth = new google.auth.GoogleAuth({
 });
 
 const SHEET_ID = process.env.GOOGLE_SHEET_ID;
-
 
 const appendToSheet = async (range, values) => {
   const authClient = await auth.getClient();
@@ -39,14 +37,11 @@ const appendToSheet = async (range, values) => {
   });
 };
 
-
 app.get('/test', (req, res) => {
   res.send('✅ Backend is alive');
 });
 
-
 app.post('/track-cookie', async (req, res) => {
-  console.log('✅ Received POST to /track-cookie');
   try {
     const { time, browser, location, ip } = req.body;
     await appendToSheet('Sheet1!A2:D', [time, browser, location, ip]);
@@ -57,7 +52,6 @@ app.post('/track-cookie', async (req, res) => {
   }
 });
 
-// ✅ Click tracking route
 app.post('/track-click', async (req, res) => {
   try {
     const { time, tag, id, className, text } = req.body;
@@ -69,6 +63,5 @@ app.post('/track-click', async (req, res) => {
   }
 });
 
-// ✅ Run server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`✅ Server running at http://localhost:${PORT}`));
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
