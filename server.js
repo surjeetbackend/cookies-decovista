@@ -1,3 +1,4 @@
+// index.js
 const express = require('express');
 const cors = require('cors');
 const { google } = require('googleapis');
@@ -6,12 +7,8 @@ require('dotenv').config();
 const app = express();
 app.use(express.json());
 
-app.use(cors({
-  origin: ['http://localhost:5175', 'https://decovista.in'],
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type']
-}));
-app.options('*', cors());
+// ✅ Allow all origins (wildcard)
+app.use(cors());
 
 const auth = new google.auth.GoogleAuth({
   credentials: {
@@ -26,6 +23,7 @@ const SHEET_ID = process.env.GOOGLE_SHEET_ID;
 const appendToSheet = async (range, values) => {
   const authClient = await auth.getClient();
   const sheets = google.sheets({ version: 'v4', auth: authClient });
+
   await sheets.spreadsheets.values.append({
     spreadsheetId: SHEET_ID,
     range,
@@ -34,10 +32,12 @@ const appendToSheet = async (range, values) => {
   });
 };
 
+// ✅ Health check route
 app.get('/test', (req, res) => {
   res.send('✅ Backend is alive');
 });
 
+// ✅ Save cookie info to Sheet1
 app.post('/track-cookie', async (req, res) => {
   try {
     const { time, browser, location, ip } = req.body;
@@ -49,10 +49,11 @@ app.post('/track-cookie', async (req, res) => {
   }
 });
 
+// ✅ Save click info to Sheet2
 app.post('/track-click', async (req, res) => {
   try {
     const { time, tag, id, className, text } = req.body;
-    await appendToSheet('Sheet2!F2:K', [time, tag, id, className, text]);
+    await appendToSheet('Sheet2!A1:E', [time, tag, id, className, text]);
     res.status(200).json({ message: 'Click saved' });
   } catch (err) {
     console.error('Click error:', err.message);
